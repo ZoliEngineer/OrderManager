@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  labels:
+    app: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: ordermanagercontainers.azurecr.io/ui-frontend:1.6
+          ports:
+            - containerPort: 80
+      imagePullSecrets:
+        - name: acr-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 52.152.204.223   # Creates external IP on AKS
+  selector:
+    app: frontend
+  ports:
+    - protocol: TCP
+      port: 80       # Service port
+      targetPort: 80 # Container port
+  

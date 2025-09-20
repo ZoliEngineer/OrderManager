@@ -1,0 +1,25 @@
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: azure-kv-sync
+spec:
+  provider: azure
+  parameters:
+    usePodIdentity: "false"
+    useVMManagedIdentity: "true"
+    userAssignedIdentityID: ""
+    keyvaultName: "akv-ordermanager"
+    cloudName: ""
+    objects: |
+      array:
+        - |
+          objectName: MONGODBPASS
+          objectType: secret
+          objectVersion: "" # empty means latest
+    tenantId: "<your-tenant-id>"
+  secretObjects: # This syncs the value into a native Kubernetes Secret
+    - secretName: my-db-secret
+      type: Opaque
+      data:
+        - objectName: MONGODBPASS
+          key: MONGODB_PASS

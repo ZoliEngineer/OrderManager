@@ -1,0 +1,33 @@
+---
+- name: Deploy multi-module app to AKS
+  hosts: localhost
+  vars:
+    acr_name: ordermanagercontainers
+    acr_login_server: ordermanagercontainers.azurecr.io
+    resource_group: OrderManager
+    aks_cluster: om-aks-cluster
+    docker_images:
+      - { name: "marketdata-deployment", path: "marketdata/marketdata" }
+      - { name: "marketprocessor-deployment", path: "marketprocessor/marketprocessor" }
+      - { name: "frontend-deployment", path: "ui/frontend" }
+
+  tasks:
+    - name: Build Maven project
+      command: mvn clean package -DskipTests
+      args:
+        chdir: "{{ playbook_dir }}"
+
+    - name: Log in to Azure Container Registry
+      command: az acr login --name {{ acr_name }}
+
+    - name: Build and push Docker images
+      shell: |
+        docker build -t {{ acr_login_server }}/{{ item.name }}:latest {{ item.path }}
+        docker push {{ acr_login_server }}/{{ item.name }}:latest
+      loop: "{{ docker_images }}"
+
+    - name: Get AKS credentials
+      command: az aks get-credentials --resource-group {{ resource_group }} --name {{ aks_cluster }} --overwrite-existing
+
+    - name: Apply Kubernetes manifests
+      command: kubectl apply -f k8s/

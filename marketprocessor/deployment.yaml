@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: marketprocessor-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: marketprocessor
+  template:
+    metadata:
+      labels:
+        app: marketprocessor
+    spec:
+      containers:
+        - name: marketprocessor
+          image: ordermanagercontainers.azurecr.io/marketprocessor:1.1

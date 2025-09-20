@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: marketdata-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: marketdata
+  template:
+    metadata:
+      labels:
+        app: marketdata
+    spec:
+      containers:
+        - name: marketdata
+          image: ordermanagercontainers.azurecr.io/marketdata:1.23
+          ports:
+            - containerPort: 8080
+          env:
+          - name: dbpass-secret
+            valueFrom:
+             secretKeyRef:
+              name: dbpass
+              key: MONGODBPASS
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: marketdata-service
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 52.152.204.223
+  selector:
+    app: marketdata
+  ports:
+    - protocol: TCP
+      port: 81
+      targetPort: 8080
